@@ -1,0 +1,7 @@
+services:
+  art_to_ftp:
+    image: "123"
+    environment:
+      - MVN_URL=${MVN_URL}
+      - MVN_USER=${MVN_USER}
+      - MVN_PASSWORD=${MVN_PASSWORD}
