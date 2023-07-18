@@ -5,3 +5,12 @@ services:
       - MVN_URL=${MVN_URL}
       - MVN_USER=${MVN_USER}
       - MVN_PASSWORD=${MVN_PASSWORD}
+      - FTP_URL=localftp
+      - FTP_USER=ftp
+      - FTP_PASSWORD=ftp
+  localftp:
+    image: "fauria/vsftpd"
+    environment:
+      - FTP_USER=ftp
+      - FTP_PASS=ftp
+
