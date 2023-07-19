@@ -3,10 +3,15 @@ Service that loads an artifact from artifactory and uploads it to FTP
 The following environment variables are required:
 
 **MVN_URL** — Artifactory/Maven URL
+
 **MVN_USER** — Repository username
+
 **MVN_PASSWORD** — Repository password
+
 **FTP_URL** — FTP URL
+
 **FTP_USER** — FTP username
+
 **FTP_PASSWORD** — FTP password
 
 Application listens on specified (default 5700) port for a POST http request with the following payload:
