@@ -8,6 +8,8 @@ services:
       - FTP_URL=localftp
       - FTP_USER=ftp
       - FTP_PASSWORD=ftp
+    ports:
+      - 5700:5700
   localftp:
     image: "fauria/vsftpd"
     environment:
