@@ -4,6 +4,7 @@ import logging
 from oc_cdtapi import NexusAPI
 from ftplib import FTP
 import os
+from . import art_to_ftp_bp
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,13 +21,13 @@ def response(code, data):
     )
 
 
-@app.route('/ping', methods=['GET'])
+@art_to_ftp_bp.route('/ping', methods=['GET'])
 def ping():
     logging.debug('Reached ping')
     return response(200, '{"result": "ok"}')
 
 
-@app.route('/gav_copy', methods=['POST'])
+@art_to_ftp_bp.route('/gav_copy', methods=['POST'])
 def gav_copy():
     logging.debug('Reached gav_copy')
     data = flask.request.json
