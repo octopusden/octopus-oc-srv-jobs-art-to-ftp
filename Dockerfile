@@ -14,4 +14,4 @@ RUN python3 -m pip install $(pwd) && \
 
 HEALTHCHECK --interval=300s --timeout=3s CMD ./healthcheck.sh ${APP_PORT} || exit 1
 
-ENTRYPOINT "python3" "-m" "gunicorn" "oc_art_to_ftp.wsgi:app" "-b" "0.0.0.0:${APP_PORT}"
+ENTRYPOINT "python3" "-m" "gunicorn" "-t" "600" "oc_art_to_ftp.wsgi:app" "-b" "0.0.0.0:${APP_PORT}"
