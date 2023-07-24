@@ -151,7 +151,7 @@ class ArtToFTP:
         gl = group.split('.')
         l = len(gl)
         for p in range(0, l-1):
-            if gl[p] == 'cards' and gl[p+1] == gl[p+1].upper():
+            if gl[p].endswith('ards') and gl[p+1] == gl[p+1].upper():
                 code = gl[p+1]
                 logging.debug('Found client code [%s]' % code)
                 break
