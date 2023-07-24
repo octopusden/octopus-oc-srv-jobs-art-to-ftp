@@ -2,6 +2,7 @@ services:
   art_to_ftp:
     image: "123"
     environment:
+      - ART_SRC_REPO=cdt.builds
       - MVN_URL=${MVN_URL}
       - MVN_USER=${MVN_USER}
       - MVN_PASSWORD=${MVN_PASSWORD}
