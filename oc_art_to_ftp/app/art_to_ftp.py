@@ -104,7 +104,7 @@ class ArtToFTP:
             u = u + 1
             logging.debug('Requested upload: %s (total %s)' % (u, g))
 
-        return self._response(200, 'Sync finished, requested upload %s of %s artifacts.' % (u, g))
+        return self._response(200, 'Sync finished, requested to upload %s of %s artifacts.' % (u, g))
 
 
     def ls(self, media, location, mask=None):
@@ -174,10 +174,7 @@ class ArtToFTP:
         try:
             ftp = FTP(ftp_host, ftp_user, ftp_pass)
         except error_perm as e:
-            logging.error('Failed to connect to FTP')
-            if str(e).startswith('530'):
-                logging.error('Invalid ftp credentials: [%s]' % e)
-                raise ValueError('Invalid FTP credentials')
+            logging.error('Failed to connect to FTP: [%s]' % e)
             raise
         logging.debug('Successfully connected to [%s]' % ftp_host)
         return ftp
@@ -242,12 +239,11 @@ class ArtToFTP:
         logging.debug('client_code: [%s]' % client_code)
         logging.debug('filename: [%s]' % filename)
         if client_code:
-            path = '/%s/TO_BNK/%s' % (client_code, filename)
+            path = posixpath.join(posixpath.sep, client_code, 'TO_BNK', filename)
             logging.debug('path: [%s]' % path)
             return path
-        else:
-            logging.error('Failed to get client_code')
-            return None
+        logging.error('Failed to get client_code')
+        return None
 
     def _ls_artifactory(self, location, mask=None):
         logging.debug('Reached _ls_artifactory')
