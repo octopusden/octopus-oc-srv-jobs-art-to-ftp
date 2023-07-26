@@ -2,6 +2,7 @@ import io
 import logging
 import os
 import posixpath
+import tempfile
 
 from oc_cdtapi import NexusAPI
 from ftplib import FTP, error_perm
@@ -37,8 +38,10 @@ class ArtToFTP:
             return self._response(404, 'Source artifact not found')
         
         logging.debug('Artifact exisits, downloading')
-        data = na.cat(gav, binary=True)
-        datalen = len(data)
+        data = tempfile.TemporaryFile()
+        na.cat(gav, binary=True, write_to=data)
+        data.flush()
+        datalen = os.fstat(data.fileno()).st_size
         logging.debug('Downloaded [%s] bytes' % datalen)
         logging.debug('Checking existence of [%s] on ftp' % target_path)
         size = self._size(target_path)
@@ -65,13 +68,12 @@ class ArtToFTP:
             logging.debug('Path [%s] does not exits on FTP server' % ftp_path)
             self._ftp_path_create(ftp_path)
         
-        fd = io.BytesIO(data)
         ftp = self._ftp_connect()
         ftpcmd = 'STOR %s' % target_path
         logging.debug('Trying to store file to [%s]' % target_path)
         
         try:
-            retmsg = ftp.storbinary(ftpcmd, fd)
+            retmsg = ftp.storbinary(ftpcmd, data)
         except:
             return self._response(500, 'Failed to execute storbinary')
         
