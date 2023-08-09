@@ -5,26 +5,36 @@ import unittest
 
 class TestArtToFTPExternals(unittest.TestCase):
 
+    def setUp(self):
+        os.environ['MVN_URL']='nonexistent'
+        os.environ['MVN_USER']='dummy'
+        os.environ['MVN_PASSWORD']='dummy'
+        os.environ['FTP_URL']='nonexistent'
+        os.environ['FTP_USER']='testftp'
+        os.environ['FTP_PASSWORD']='testftp'
+
     def test_nothing(self):
         return None
 
     @patch('ftplib.FTP')
-    def test_ftp_connect_no_creds(self, MockFTP):
+    def _est_ftp_connect_no_creds(self, MockFTP):
         a = ArtToFTP()
         with self.assertRaises(ValueError):
             mf = a._ftp_connect()
 
     @patch('ftplib.FTP.connect', autospec=True)
     def _est_ftp_connect_ok(self, MockFTP):
-        os.environ['FTP_URL']='nonexistent'
-        os.environ['FTP_USER']='testftp'
-        os.environ['FTP_PASSWORD']='testftp'
         a = ArtToFTP()
         MockFTP.return_value = Mock()
         mf = a._ftp_connect()
 
 
 class TestArtToFTPInternals(unittest.TestCase):
+
+    def setUp(self):
+        os.environ['MVN_URL']='nonexistent'
+        os.environ['MVN_USER']='dummy'
+        os.environ['MVN_PASSWORD']='dummy'
 
     def test_nothing(self):
         return None

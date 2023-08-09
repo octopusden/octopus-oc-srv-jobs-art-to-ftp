@@ -1,6 +1,9 @@
-FROM python:3.7
+FROM ubuntu
 
 ENV APP_PORT=${APP_PORT:-5700}
+
+RUN apt-get -y update && apt-get -y install python3 python3-pip python3-pysvn ftp
+#python3-psycopg2
 
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install --upgrade setuptools wheel

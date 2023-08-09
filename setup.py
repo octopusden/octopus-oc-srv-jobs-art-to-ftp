@@ -10,8 +10,11 @@ setup(name="oc-art-to-ftp",
         license="Apache2.0",
         install_requires=[
             "oc-cdtapi",
+            "oc-pyfs",
             "flask",
             "gunicorn",
+            "python-gnupg",
+            "fs"
         ],
       packages={"oc_art_to_ftp"},
       python_requires=">=3.6")
