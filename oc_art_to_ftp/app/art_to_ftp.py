@@ -292,7 +292,6 @@ class ArtToFTP:
         if ':customization-' in gav:
             logging.debug('this gav is to be uploaded')
             return True
-        return True
         return False
 
     def _init_svn(self):
