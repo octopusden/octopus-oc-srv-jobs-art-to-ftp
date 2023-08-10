@@ -130,8 +130,7 @@ class ArtToFTP:
         logging.debug('Reached sync')
         logging.debug('source_repo: [%s]' % source_repo)
         logging.debug('Requesting list of files')
-        #gavs = self.ls('artifactory', source_repo, mask)
-        gavs = self.ls('test', source_repo, mask)
+        gavs = self.ls('artifactory', source_repo, mask)
         g = 0
         u = 0
         for gav in gavs:
