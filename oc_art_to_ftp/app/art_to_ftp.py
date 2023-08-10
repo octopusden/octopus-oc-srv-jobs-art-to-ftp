@@ -20,11 +20,8 @@ class ArtToFTP:
         """
         logging.debug('Initializing ArtToFTP')
         self.supported_media = ['artifactory', 'ftp']
-        if os.getenv('SVN_URL'):
-            self.svn_fs_client = self._init_svn()
-            self.ch = CryptHelper(self.svn_fs_client)
-        else:
-            logging.warn('Skipping SVN & CryptHelper setup')
+        self.svn_fs_client = self._init_svn()
+        self.ch = CryptHelper(self.svn_fs_client)
         self.nexus_api = NexusAPI.NexusAPI()
 
     def gav_copy(self, gav, target_path):
@@ -66,11 +63,19 @@ class ArtToFTP:
             logging.debug('encrypt returned: [%s]' % processed)
             logging.debug('reading ecrypted file')
             data = open(processed, 'rb')
+            logging.debug('Chechking target_path')
+            if not target_path.endswith('.asc'):
+                logging.debug('adding .asc to target_path')
+                target_path = target_path + '.asc'
         elif method == 'sign':
             processed = self.ch.sign(data)
             logging.debug('sign returned: [%s]' % processed)
             logging.debug('reading signed file')
             data = open(processed, 'rb')
+            logging.debug('Chechking target_path')
+            if not target_path.endswith('.asc'):
+                logging.debug('adding .asc to target_path')
+                target_path = target_path + '.asc'
         elif method == 'none':
             logging.debug('no need to process data')
         datalen = os.fstat(data.fileno()).st_size
@@ -125,13 +130,14 @@ class ArtToFTP:
         logging.debug('Reached sync')
         logging.debug('source_repo: [%s]' % source_repo)
         logging.debug('Requesting list of files')
-        gavs = self.ls('artifactory', source_repo, mask)
+        #gavs = self.ls('artifactory', source_repo, mask)
+        gavs = self.ls('test', source_repo, mask)
         g = 0
         u = 0
         for gav in gavs:
             g = g + 1
             logging.debug('Processing gav N %s [%s]' % (g, gav))
-            if not self._gav_to_upload(g):
+            if not self._gav_to_upload(gav):
                 logging.debug('_gav_to_upload returned False, skipping')
                 continue
             target_path = self._ftp_path_from_gav(gav)
@@ -185,10 +191,9 @@ class ArtToFTP:
         code = None
         gl = group.split('.')
         for g in gl:
-            if g == g.upper() and len(g) < 20:
-                logging.debug('[%s] seems like a client code')
-                code = g
-                break
+            if self.ch.client_exists(g):
+                logging.debug('found client code: [%s]' % g)
+                return g.upper()
         if code is None:
             logging.debug('Client code not found')
         return code
@@ -284,13 +289,11 @@ class ArtToFTP:
         """
         logging.debug('Reached _gav_to_upload')
         logging.debug('gav: [%s]' % gav)
-        group = NexusAPI.parse_gav(gav)['g']
-        if 'ards' in group.split('.').pop():
+        if ':customization-' in gav:
             logging.debug('this gav is to be uploaded')
             return True
-        logging.debug('this gav is not to be uploaded')
+        return True
         return False
-
 
     def _init_svn(self):
         """

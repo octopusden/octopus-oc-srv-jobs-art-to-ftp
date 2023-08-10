@@ -28,6 +28,19 @@ class CryptHelper(object):
         self.passphrase = os.getenv('PGP_PASSWORD')
         self.pki_path = os.getenv('PKI_PATH')
         self.import_keys(self.pki_path)
+        self.own_keys_list = self.enc_keys_list.copy()
+
+    def client_exists(self, client_code):
+        """
+        """
+        logging.debug('Reached client_exists')
+        logging.debug('client_code: [%s]' % client_code)
+        for k in self.clients.keys():
+            if client_code.upper() in self.clients[k]:
+                logging.debug('Client exists')
+                return True
+        logging.debug('Client does not exist')
+        return False
 
     def get_client_country(self, client_code):
         """
@@ -103,11 +116,14 @@ class CryptHelper(object):
         """
         logging.debug('Reached import_client_keys')
         logging.debug('client_code: [%s]' % client_code)
+        logging.debug('Resetting enc_keys_list')
+        self.enc_keys_list = self.own_keys_list.copy()
         logging.debug('Requesting client keys...')
         keys = self.get_client_keys(client_code)
         for key in keys:
             logging.debug('Calling import_key...')
             self.import_key(key)
+        logging.debug('enc_key_list length is [%s]' % len(self.enc_keys_list))
 
     def import_key(self, key_data):
         """
