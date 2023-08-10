@@ -2,64 +2,47 @@ from oc_art_to_ftp.app.art_to_ftp import ArtToFTP
 from unittest.mock import patch, Mock
 import os
 import unittest
+from oc_art_to_ftp.tests.mock import MockConnections, MockNexusAPI
 
-class TestArtToFTPExternals(unittest.TestCase):
+class MockArtToFTP(ArtToFTP):
 
-    def setUp(self):
-        os.environ['MVN_URL']='nonexistent'
-        os.environ['MVN_USER']='dummy'
-        os.environ['MVN_PASSWORD']='dummy'
-        os.environ['FTP_URL']='nonexistent'
-        os.environ['FTP_USER']='testftp'
-        os.environ['FTP_PASSWORD']='testftp'
+    def _init_svn(self):
+        mc = MockConnections()
+        svn_client_fs = mc.get_svn_fs_client()
+        return svn_client_fs
 
-    def test_nothing(self):
-        return None
-
-    @patch('ftplib.FTP')
-    def _est_ftp_connect_no_creds(self, MockFTP):
-        a = ArtToFTP()
-        with self.assertRaises(ValueError):
-            mf = a._ftp_connect()
-
-    @patch('ftplib.FTP.connect', autospec=True)
-    def _est_ftp_connect_ok(self, MockFTP):
-        a = ArtToFTP()
-        MockFTP.return_value = Mock()
-        mf = a._ftp_connect()
-
-
-class TestArtToFTPInternals(unittest.TestCase):
+class TestArtifactoryToFTP(unittest.TestCase):
 
     def setUp(self):
-        os.environ['MVN_URL']='nonexistent'
-        os.environ['MVN_USER']='dummy'
-        os.environ['MVN_PASSWORD']='dummy'
+        os.environ['MVN_URL'] = 'dummy'
+        os.environ['MVN_USER'] = 'dummy'
+        os.environ['MVN_PASSWORD'] = 'dummy'
+        self.nexus_api = MockNexusAPI()
 
     def test_nothing(self):
         return None
 
     def test_client_code_from_gav(self):
-        a = ArtToFTP()
+        a = MockArtToFTP()
         test_gav = 'com.example.cdt.yards.TEST_CLIENT.blah:artifact_desc:version:zip'
         test_client = a._client_code_from_gav(test_gav)
         self.assertEqual(test_client, 'TEST_CLIENT')
 
     def test_ftp_path_from_gav(self):
-        a = ArtToFTP()
+        a = MockArtToFTP()
         test_gav = 'com.example.cdt.yards.TEST_CLIENT.blah:artifact_desc:version:zip'
         test_path = a._ftp_path_from_gav(test_gav)
         self.assertEqual(test_path, '/TEST_CLIENT/TO_BNK/artifact_desc-version.zip')
 
     def test_media_is_supported(self):
-        a = ArtToFTP()
+        a = MockArtToFTP()
         sm = a.supported_media
         for media in sm:
             self.assertTrue(a._media_is_supported(media))
         self.assertFalse(a._media_is_supported('foobarbaz'))
 
     def test_response(self):
-        a = ArtToFTP()
+        a = MockArtToFTP()
         code = 200
         message = 'success'
         self.assertEqual(a._response(code, message), (200, '{"result": "ok", "message": "success"}'))
