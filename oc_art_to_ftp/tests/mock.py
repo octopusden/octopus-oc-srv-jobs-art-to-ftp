@@ -15,3 +15,6 @@ class MockNexusAPI(object):
 
     def cat(self, gav):
         return 'this is a file'
+
+    def ls(self, mask=None, repo=None):
+        return ['com.example.group:TEST_CLIENT.artifact:version:zip']

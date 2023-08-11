@@ -14,6 +14,7 @@ setup(name="oc-art-to-ftp",
             "flask",
             "gunicorn",
             "python-gnupg",
+            "pytest-localftpserver",
             "fs"
         ],
       packages={"oc_art_to_ftp"},
