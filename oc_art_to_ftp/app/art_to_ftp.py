@@ -43,43 +43,13 @@ class ArtToFTP:
         if not na.exists(gav):
             logging.error('Source artifact was not found')
             return self._response(404, 'Source artifact not found')
+
+        resp, data, target_path = self._process_artifact(gav, target_path) 
+        if resp:
+            return resp
         
-        logging.debug('Artifact exisits, downloading')
-        data = tempfile.TemporaryFile()
-        logging.debug('Tempfile object is [%s]' % data)
-        na.cat(gav, binary=True, write_to=data)
-        data.flush()
-        data.seek(0)
-        logging.debug('Starting cryptography')
-        method = self.ch.get_method(gav)
-        logging.debug('CryptHelper method: [%s]' % method)
-        if method == 'encrypt':
-            client_code = self._client_code_from_gav(gav)
-            if not client_code:
-                logging.error('Could not get client_code, encryption is not possible')
-                return self._response(400, 'Client code not found')
-            self.ch.import_client_keys(client_code)
-            processed = self.ch.encrypt(data)
-            logging.debug('encrypt returned: [%s]' % processed)
-            logging.debug('reading ecrypted file')
-            data = open(processed, 'rb')
-            logging.debug('Chechking target_path')
-            if not target_path.endswith('.asc'):
-                logging.debug('adding .asc to target_path')
-                target_path = target_path + '.asc'
-        elif method == 'sign':
-            processed = self.ch.sign(data)
-            logging.debug('sign returned: [%s]' % processed)
-            logging.debug('reading signed file')
-            data = open(processed, 'rb')
-            logging.debug('Chechking target_path')
-            if not target_path.endswith('.asc'):
-                logging.debug('adding .asc to target_path')
-                target_path = target_path + '.asc'
-        elif method == 'none':
-            logging.debug('no need to process data')
         datalen = os.fstat(data.fileno()).st_size
-        logging.debug('Encrypted file size [%s] bytes' % datalen)
+        logging.debug('Processed file size [%s] bytes' % datalen)
         logging.debug('Checking existence of [%s] on ftp' % target_path)
         size = self._size(target_path)
 
@@ -328,6 +298,45 @@ class ArtToFTP:
         
         logging.debug('Media is supported')
         return True
+
+    def _process_artifact(self, gav, target_path):
+        logging.debug('Reached _process_artifact')
+        data = tempfile.TemporaryFile()
+        na = self.nexus_api
+        logging.debug('Tempfile object is [%s]' % data)
+        na.cat(gav, binary=True, write_to=data)
+        data.flush()
+        data.seek(0)
+        logging.debug('Starting cryptography')
+        method = self.ch.get_method(gav)
+        logging.debug('CryptHelper method: [%s]' % method)
+        if method == 'encrypt':
+            client_code = self._client_code_from_gav(gav)
+            if not client_code:
+                logging.error('Could not get client_code, encryption is not possible')
+                return self._response(400, 'Client code not found'), None, None
+            self.ch.import_client_keys(client_code)
+            processed = self.ch.encrypt(data)
+            logging.debug('encrypt returned: [%s]' % processed)
+            logging.debug('reading ecrypted file')
+            data = open(processed, 'rb')
+            logging.debug('Chechking target_path')
+            if not target_path.endswith('.asc'):
+                logging.debug('adding .asc to target_path')
+                target_path = target_path + '.asc'
+        elif method == 'sign':
+            processed = self.ch.sign(data)
+            logging.debug('sign returned: [%s]' % processed)
+            logging.debug('reading signed file')
+            data = open(processed, 'rb')
+            logging.debug('Chechking target_path')
+            if not target_path.endswith('.asc'):
+                logging.debug('adding .asc to target_path')
+                target_path = target_path + '.asc'
+        elif method == 'none':
+            logging.debug('no need to process data')
+
+        return None, data, target_path
 
     def _response(self, code, message):
         """
