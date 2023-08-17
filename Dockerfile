@@ -1,17 +1,19 @@
-FROM ubuntu
+FROM fedora:38
 
 ENV APP_PORT=${APP_PORT:-5700}
 
-RUN apt-get -y update && apt-get -y install python3 python3-pip python3-pysvn ftp
-#python3-psycopg2
-
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install --upgrade setuptools wheel
+RUN dnf --assumeyes makecache && \
+    dnf --assumeyes install \
+        python3 \
+        python3-pip \
+        python3-pysvn \
+        ftp
 
 RUN rm -rf /build
 COPY --chown=root:root . /build
 WORKDIR /build
-RUN python3 -m pip install $(pwd) && \
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install $(pwd) && \
     python3 -m unittest discover -v && \
     python3 setup.py bdist_wheel
 
