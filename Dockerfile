@@ -7,7 +7,7 @@ RUN dnf --assumeyes makecache && \
         python3 \
         python3-pip \
         python3-pysvn \
-        ftp
+        gpg 
 
 RUN rm -rf /build
 COPY --chown=root:root . /build
