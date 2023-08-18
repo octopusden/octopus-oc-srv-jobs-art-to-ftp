@@ -3,10 +3,11 @@ import logging
 import os
 import posixpath
 import tempfile
+import fs
 
 from oc_pyfs import SvnFS
 from oc_cdtapi import NexusAPI
-from ftplib import FTP, error_perm
+from fs.ftpfs import FTPFS
 
 from oc_art_to_ftp.app.CryptHelper import CryptHelper
 from oc_art_to_ftp.app.fs_clients import get_svn_fs_client
@@ -32,6 +33,7 @@ class ArtToFTP:
         logging.debug('gav: [%s]' % gav)
         logging.debug('target_path: [%s]' % target_path)
         client_code = None
+        retmsg = None
         if not posixpath.isabs(target_path):
             logging.debug('Target path is not absolute, adding leading slash')
             target_path = posixpath.join(posixpath.sep, target_path)
@@ -76,21 +78,19 @@ class ArtToFTP:
             self._ftp_path_create(ftp_path)
 
         ftp = self._ftp_connect()
-        ftpcmd = 'STOR %s' % target_path
         logging.debug('Trying to store file to [%s]' % target_path)
         
         try:
-            retmsg = ftp.storbinary(ftpcmd, fp=data)
+            ftp.upload(path=target_path, file=data)
         except:
-            return self._response(500, 'Failed to execute storbinary')
+            return self._response(500, 'Failed to upload file')
         
         data.close()
-        logging.debug('FTP server responded with [%s]' % retmsg)
-        
-        if retmsg.startswith('226'):
+        if self.exists('ftp', target_path):
+            retmsg = 'Uploaded'
             return self._response(200, retmsg)
         else:
-            logging.error('Unexpected response from FTP')
+            retmsg = 'Failed to upload file'
             return self._response(500, retmsg)
 
     def sync(self, source_repo, mask=None):
@@ -167,6 +167,18 @@ class ArtToFTP:
             logging.debug('Client code not found')
         return code
 
+    def _exists_ftp(self, path):
+        """
+        """
+        logging.debug('Reached _exists_ftp')
+        logging.debug('path: [%s]' % path)
+        ftp = self._ftp_connect()
+        try:
+            i = ftp.getinfo(path)
+        except fs.errors.ResourceNotFound as e:
+            return False
+        return True
+
     def _ftp_connect(self):
         """
         Tries to connect to FTP server, returns ftp handle
@@ -180,7 +192,7 @@ class ArtToFTP:
             raise ValueError('Missing FTP credentials')
         logging.debug('Trying to connect [%s] to [%s]' % (ftp_user, ftp_host))
         try:
-            ftp = FTP(ftp_host, ftp_user, ftp_pass)
+            ftp = FTPFS(ftp_host, user=ftp_user, passwd=ftp_pass)
         except error_perm as e:
             logging.error('Failed to connect to FTP: [%s]' % e)
             raise
@@ -194,8 +206,8 @@ class ArtToFTP:
         logging.debug('path: [%s]' % path)
         ftp = self._ftp_connect()
         try:
-            ftp.mkd(path)
-        except error_perm as e:
+            ftp.makedir(path)
+        except (fs.errors.DirectoryExists, fs.errors.ResuourceNotFound) as e:
             logging.error('Failed to create [%s]: [%s]' % (path, e))
             raise
         logging.debug('[%s] created successfully' % path)
@@ -226,14 +238,11 @@ class ArtToFTP:
         logging.debug('path: [%s]' % path)
         ftp = self._ftp_connect()
         try:
-            ftp.cwd(path)
-        except error_perm as e:
-            if str(e).startswith('550'):
-                logging.debug('Path does not exist')
-                return False
-            raise
-        logging.debug('Path exists')
-        return True
+            i = ftp.getinfo(path)
+        except fs.errors.ResourceNotFound as e:
+            logging.debug('Path does not exist')
+            return False
+        return i.is_dir
 
     def _ftp_path_from_gav(self, gav):
         """
@@ -361,14 +370,11 @@ class ArtToFTP:
         size = 0
 
         try:
-            size = ftp.size(location)
-        except error_perm as e:
+            size = ftp.getinfo(location)
+        except fs.errors.ResourceNotFound as e:
             logging.debug('ftp returned [%s]' % e)
-            if str(e).startswith('550'):
-                logging.debug('Assuming file not found')
-                return -1
-            else:
-                return None
+            logging.debug('Assuming file not found')
+            return -1
         
         logging.debug('File found, size: [%s]' % size)
         return size
