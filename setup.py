@@ -18,4 +18,5 @@ setup(name="oc-art-to-ftp",
             "fs"
         ],
       packages={"oc_art_to_ftp"},
+      scripts=['oc_art_to_ftp/sync.py'],
       python_requires=">=3.6")
