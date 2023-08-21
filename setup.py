@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version = "1.0.0"
+__version = "1.1.1"
 
 setup(name="oc-art-to-ftp",
         version=__version,
@@ -10,8 +10,13 @@ setup(name="oc-art-to-ftp",
         license="Apache2.0",
         install_requires=[
             "oc-cdtapi",
+            "oc-pyfs",
             "flask",
             "gunicorn",
+            "python-gnupg",
+            "pytest-localftpserver",
+            "fs"
         ],
       packages={"oc_art_to_ftp"},
+      scripts=['oc_art_to_ftp/sync.py'],
       python_requires=">=3.6")
