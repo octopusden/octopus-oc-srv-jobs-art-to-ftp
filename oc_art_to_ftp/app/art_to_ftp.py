@@ -313,7 +313,7 @@ class ArtToFTP:
         data = tempfile.TemporaryFile()
         na = self.nexus_api
         logging.debug('Tempfile object is [%s]' % data)
-        na.cat(gav, binary=True, write_to=data)
+        na.cat(gav, binary=True, write_to=data, stream=True)
         data.flush()
         data.seek(0)
         logging.debug('Starting cryptography')
