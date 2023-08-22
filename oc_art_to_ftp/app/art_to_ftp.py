@@ -4,6 +4,7 @@ import os
 import posixpath
 import tempfile
 import fs
+from urllib.parse import urlparse
 
 from oc_pyfs import SvnFS
 from oc_cdtapi import NexusAPI
@@ -184,12 +185,18 @@ class ArtToFTP:
         Tries to connect to FTP server, returns ftp handle
         """
         logging.debug('Reached _ftp_connect')
-        ftp_host = os.getenv('FTP_URL')
+        ftp_url = os.getenv('FTP_URL')
         ftp_user = os.getenv('FTP_USER')
         ftp_pass = os.getenv('FTP_PASSWORD')
-        if not all([ftp_host, ftp_user, ftp_pass]):
+        if not all([ftp_url, ftp_user, ftp_pass]):
             logging.error('FTP credentials missing')
             raise ValueError('Missing FTP credentials')
+        if urlparse(ftp_url).scheme:
+            logging.debug('Scheme specified in ftp_url, getting hostname')
+            ftp_host = urlparse(ftp_url).hostname
+        else:
+            logging.debug('Scheme is not specified, using ftp_url as hostname')
+            ftp_host = ftp_url
         logging.debug('Trying to connect [%s] to [%s]' % (ftp_user, ftp_host))
         try:
             ftp = FTPFS(ftp_host, user=ftp_user, passwd=ftp_pass)
