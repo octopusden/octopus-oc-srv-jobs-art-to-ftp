@@ -15,7 +15,8 @@ setup(name="oc-art-to-ftp",
             "gunicorn",
             "python-gnupg",
             "pytest-localftpserver",
-            "fs"
+            "fs",
+            "oc-logging"
         ],
       packages={"oc_art_to_ftp"},
       scripts=['oc_art_to_ftp/sync.py'],
