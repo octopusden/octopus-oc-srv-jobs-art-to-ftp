@@ -1,6 +1,6 @@
 from setuptools import setup
 
-__version = "1.1.3"
+__version = "1.1.4"
 
 setup(name="oc-art-to-ftp",
         version=__version,
